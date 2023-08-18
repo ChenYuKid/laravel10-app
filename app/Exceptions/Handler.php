@@ -3,7 +3,9 @@
 namespace App\Exceptions;
 
 use App\Models\ErrorInfo;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -49,7 +51,22 @@ class Handler extends ExceptionHandler
         //出现异常记录异常信息，如果开启debug时返回异常信息
         $this->reportable(function (Throwable $e) use ($appDebug) {
 
+            //精确到天拆分表，不存在则创建
+            $tableName = 'error_info_' . date('Y_m_d');
+            if (!Schema::hasTable($tableName)) {
+                Schema::create($tableName, function (Blueprint $table) {
+                    $table->id();
+                    $table->string('request_id', 32)->default('')->comment('请求id');
+                    $table->string('code', 10)->default('')->comment('错误码');
+                    $table->string('line', 255)->default('')->comment('行数');
+                    $table->longText('message')->nullable()->comment('错误信息');
+                    //此处laravel已经维护了时间字段所以不再增加创建时间
+                    $table->timestamps();
+                });
+            }
             $errorInfoModel = new ErrorInfo();
+            //设置为当前使用的表
+            $errorInfoModel->setTable($tableName);
             $errorData = [
                 'request_id' => request()->input('request_id'),
                 'code' => $e->getCode(),

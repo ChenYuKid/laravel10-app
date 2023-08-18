@@ -29,6 +29,9 @@ class ResponseRecord
         ];
 
         $requestInfoModel = new RequestInfo();
+        //此处也需要使用最新的表
+        $tableName = 'request_info_' . date('Y_m_d');
+        $requestInfoModel->setTable($tableName);
         $requestInfoModel->where('request_id', $requestId)->update($responseData);
 
         return $response;
