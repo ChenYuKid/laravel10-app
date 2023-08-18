@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Models\ErrorInfo;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -43,11 +44,25 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $appDebug = env('APP_DEBUG');
+
+        //出现异常记录异常信息，如果开启debug时返回异常信息
+        $this->reportable(function (Throwable $e) use ($appDebug) {
+
+            $errorInfoModel = new ErrorInfo();
+            $errorData = [
+                'request_id' => request()->input('request_id'),
+                'code' => $e->getCode(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+            ];
+            $errorInfoModel->create($errorData);
+            if ($appDebug) {
+                return response()->json($errorData);
+            }
         });
 
-        // 自定义异常处理返回json
+        // 自定义错误返回处理
         $this->renderable(function (ApiException $e){
 
             return response()->json([
@@ -57,13 +72,16 @@ class Handler extends ExceptionHandler
             ]);
         });
 
-        // 代码异常导致捕获处理返回
-        $this->renderable(function (\Exception $e){
-            return response()->json([
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'data' => json_encode([]),
-            ]);
+        // 代码异常导致捕获处理返回，但未开启debug所以返回内部错误
+        $this->renderable(function (\Exception $e) use ($appDebug){
+
+            if (!$appDebug) {
+                return response()->json([
+                    'code' => '500',
+                    'message' => '内部服务器错误',
+                    'data' => json_encode([]),
+                ]);
+            }
         });
     }
 }
