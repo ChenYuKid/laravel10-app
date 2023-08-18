@@ -46,5 +46,24 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        // 自定义异常处理返回json
+        $this->renderable(function (ApiException $e){
+
+            return response()->json([
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'data' => json_encode([]),
+            ]);
+        });
+
+        // 代码异常导致捕获处理返回
+        $this->renderable(function (\Exception $e){
+            return response()->json([
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'data' => json_encode([]),
+            ]);
+        });
     }
 }
