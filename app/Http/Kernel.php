@@ -2,6 +2,8 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\RequestRecord;
+use App\Http\Middleware\ResponseRecord;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -21,6 +23,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        RequestRecord::class,//记录用户请求数据
+        ResponseRecord::class,//记录请求的返回数据
     ];
 
     /**
