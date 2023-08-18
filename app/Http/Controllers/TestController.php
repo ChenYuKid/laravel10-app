@@ -27,5 +27,31 @@ class TestController extends Controller
     public function test4()
     {
         $string = request()->input('s');
+        $keys = [
+            ')' => '(',
+            '}' => '{',
+            ']' => '['
+        ];
+
+        $list = [];
+        $array = str_split($string);
+        foreach ($array as $item) {
+            if (!empty($keys[$item])) {
+                if (!empty($list[0]) && $list[0] == $keys[$item]) {
+                    array_shift($list);
+                } else {
+                    return $this->success('无效');
+                }
+            } else {
+                array_unshift($list, $item);
+            }
+        }
+
+        if (!$list) {
+            $result = '有效';
+        } else {
+            $result = '无效';
+        }
+        return $this->success($result);
     }
 }
